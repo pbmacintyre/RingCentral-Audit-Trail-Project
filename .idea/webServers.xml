@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="37042ca0-52d1-4988-a319-6f94b5e87b51" name="Paladin Audit Trail App" url="http://ftp.paladin-bs.com">
+        <fileTransfer rootFolder="/craig_chan_project" host="ftp.paladin-bs.com" port="21">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
