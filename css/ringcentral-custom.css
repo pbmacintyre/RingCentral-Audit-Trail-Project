@@ -18,7 +18,7 @@
 }
 .CustomTable td, th {
     padding: 5px !important;
-    /* border: 1px solid grey ; */
+    /*border: 1px solid red ;*/
 }
 .CustomTable select {
     /* height: 26px !important;   */
@@ -34,6 +34,9 @@
 }
 .CustomTableFullCol {
     text-align: center;
+}
+.CustomTableFullCol_left {
+    text-align: left;
 }
 .left_col {
     width: 50% !important;
@@ -78,12 +81,13 @@
 }
 /* =====================  */
 .addform_left_col {
-    width: 35% !important;
+    width: 50% !important;
     padding-left: 10px;
     padding-top: 10px;
     padding-bottom: 10px;
 }
 .addform_right_col {
+    width: 50% !important;
     padding-left: 10px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -185,4 +189,10 @@
     50% {
         opacity: 0;
     }
+}
+.SMSToggle {
+    display: none;
+}
+.TMToggle {
+    display: none;
 }

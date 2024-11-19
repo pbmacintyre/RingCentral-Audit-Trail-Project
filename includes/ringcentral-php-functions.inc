@@ -45,7 +45,7 @@ function ringcentral_dump_obj($object) {
     echo "</pre>";
 }
 function echo_plain_text($text, $color="black", $font_size="large", $lines=0) {
-    echo "<br /><p style='color: $color; display: inline; font-size: $font_size'>$text</p>" ;
+    echo "<p style='color: $color; display: inline; font-size: $font_size'>$text</p>" ;
     if ($lines > 0 ) {
         $i = 0;
         while ($i <= $lines) {
