@@ -69,14 +69,91 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
                     <hr>
                 </td>
             </tr>
-			<?php if ($auth == 1) {
-				// already in DB, already "authorized" as admin, edit existing data
-				auth_level_1($accessToken, $accountId, $extensionId);
-			} ?>
-			<?php if ($auth == 2) {
-				// admin level but newly created DB record, still needs to select how to get notifications
-				auth_level_2($accessToken, $accountId, $extensionId);
-			} ?>
+            <tr class="CustomTable">
+                <td colspan="2" class="CustomTableFullCol_left">
+					<?php echo_plain_text("Receive Audit Trail notifications via SMS", "", "medium"); ?>
+                </td>
+            </tr>
+            <tr class="CustomTable">
+                <td colspan="2" class="CustomTableFullCol_left">
+                    <input type="checkbox" id="SMSEnable" onClick="showHideSMS()">Enable
+                </td>
+            </tr>
+			<?php $response = list_extension_sms_enabled_numbers($accessToken, $accountId, $extensionId); ?>
+            <tr class="CustomTable SMSToggle">
+                <td>
+                    <!--  blank column for formatting -->
+                </td>
+                <td class="right_col">
+					<?php echo_plain_text("Phone number formats: +19991234567", "", "small"); ?>
+                </td>
+            </tr>
+            <tr class="CustomTable SMSToggle">
+                <td class="addform_left_col">
+                    <p style='display: inline; <?php if ($label == "from_number") echo "color:red"; ?>'>From Number:</p>
+					<?php required_field(); ?>
+                </td>
+                <td class="addform_right_col">
+					<?php
+					if (!$response) {
+						echo "<span style=\"color: red; \">No SMS enabled phone numbers were found for that account</span>";
+					} else { ?>
+                        <select name="from_number">
+                            <option selected value="-1">Choose a From Number</option>
+							<?php
+							foreach ($response as $record) { ?>
+                                <option value="<?php echo $record['phoneNumber']; ?>"><?php echo $record['phoneNumber']; ?></option>
+							<?php } ?>
+                        </select>
+					<?php } ?>
+                </td>
+            </tr>
+            <tr class="CustomTable SMSToggle">
+                <td class="addform_left_col">
+                    <p style='display: inline; <?php if ($label == "to_number") echo "color:red"; ?>'>To Number:</p>
+					<?php required_field(); ?>
+                </td>
+                <td class="addform_right_col">
+                    <input type="text" name="to_number" value="<?php
+					if ($print_again) {
+						echo strip_tags($_POST['to_number']);
+					}
+					?>">
+                </td>
+            </tr>
+            <tr class="CustomTable">
+                <td colspan="2" class="CustomTableFullCol_left">
+					<?php
+					echo_plain_text("AND / OR", "red", "large", 1);
+					echo_plain_text("Receive Audit Trail notifications via RingCentral Team Messaging", "", "medium"); ?>
+                </td>
+            </tr>
+            <tr class="CustomTable">
+                <td colspan="2" class="CustomTableFullCol_left">
+                    <input type="checkbox" id="TMEnable" onClick="showHideTM()">Enable
+                </td>
+            </tr>
+			<?php $response = list_tm_teams($accessToken); ?>
+            <tr class="CustomTable TMToggle">
+                <td class="addform_left_col">
+                    <p style='display: inline; <?php if ($label == "chat_id") echo "color:red"; ?>'>Available Group Chats:</p>
+					<?php required_field(); ?>
+                </td>
+                <td class="addform_right_col">
+					<?php
+					if (!$response) {
+						echo "<span style=\"color: red; \">No Team Chats are currently available</span>";
+					} else { ?>
+                        <select name="chat_id">
+                            <option selected value="-1">Choose Team to Post Chat into</option>
+							<?php
+							foreach ($response['records'] as $record) { ?>
+                                <option value="<?php echo $record['id']; ?>"><?php echo $record['name']; ?></option>
+							<?php } ?>
+                        </select>
+					<?php } ?>
+                </td>
+            </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol">
                     <input type="submit" class="submit_button" value="   Save   " name="save">
