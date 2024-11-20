@@ -82,15 +82,13 @@ if (isset($_GET['code'])) {
 	$condition = "AND";
 	$db_result = db_record_select($table, $columns_data, $where_info, $condition);
 
-//	echo_spaces("DB result", $db_result, 2);
-
 	if (!$isAdmin) {
 		// not admin level
 		header("Location: index.php?auth=0");
 	}
 	if ($db_result['client_id']) {
 		// already in the DB allow for editing auth = 1
-		header("Location: authorized_1.php?token=$_SESSION[form_token]");
+		header("Location: authorized_edit.php?token=$_SESSION[form_token]");
 	} else {
 		// admin level account so save the information to the DB auth = 2
 		$columns_data = array(
@@ -103,7 +101,7 @@ if (isset($_GET['code'])) {
 		$_SESSION['extension_id'] = $extensionId;
 		$_SESSION['access_token'] = $accessToken;
 
-		header("Location: authorized_2.php?token=$_SESSION[form_token]");
+		header("Location: authorized_new.php?token=$_SESSION[form_token]");
 	}
 }
 
