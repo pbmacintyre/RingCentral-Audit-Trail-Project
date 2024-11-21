@@ -32,10 +32,9 @@ foreach ($db_result as $row) {
         "access" => $tokens['accessToken'],
         "refresh" => $tokens['refreshToken'],
     );
-
     db_record_update($table, $fields_data, $where_info);
 }
 
 $message = "CRON runs every 30 minutes";
-//echo_spaces("tokens refreshed");
+echo_spaces("tokens refreshed");
 send_basic_sms ($tokens['accessToken'], $message);

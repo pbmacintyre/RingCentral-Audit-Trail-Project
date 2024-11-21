@@ -388,6 +388,7 @@ function list_tm_teams($accessToken) {
 	$data = json_decode($resp, true);
 	// Close the cURL session
 	curl_close($tm_ch);
+//	echo_spaces("team chats", $data);
 
 	$groupChats = array();
 	if ($data['errors']) {
@@ -397,6 +398,39 @@ function list_tm_teams($accessToken) {
 		$groupChats = $data;
 	}
 	return $groupChats;
+}
+function getTMChatName($chat_id, $accessToken) {
+
+	$endpoint = "https://platform.ringcentral.com/team-messaging/v1/chats";
+
+	$params = [
+		'type' => 'Team',
+//        'type' => array( 'Everyone', 'Group', 'Personal', 'Direct', 'Team' ),
+		'recordCount' => 30,
+	];
+
+	$endpoint .= '?' . http_build_query($params);
+
+	$headers = [
+		'Authorization: Bearer ' . $accessToken,
+		"Content-Type: application/json",
+	];
+
+	$tm_ch = curl_init($endpoint);
+	curl_setopt($tm_ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($tm_ch, CURLOPT_HTTPHEADER, $headers);
+
+	$resp = curl_exec($tm_ch);
+	$data = json_decode($resp, true);
+	// Close the cURL session
+	curl_close($tm_ch);
+
+	foreach ($data['records'] as $value) {
+		if ($value['id'] == $chat_id) {
+			$chat_name = $value['name'];
+		}
+	}
+	return $chat_name;
 }
 
 function list_extension_sms_enabled_numbers($accessToken, $accountId, $extensionId) {

@@ -15,43 +15,54 @@ require_once('includes/ringcentral-curl-functions.inc');
 page_header();
 ?>
     <script>
-        function showHideSMS() {
-            const checkbox = document.getElementById("SMSEnable");
-            const rows = document.querySelectorAll('.SMSToggle');
+        window.onload = function () {
+            showHideSMS();
+            showHideTM();
+        };
 
-            if (checkbox.checked) {
-                rows.forEach(row => {
-                    row.style.display = 'table-row';
+        function showHideSMS() {
+            const sms_checkbox = document.getElementById("SMSEnable");
+            const sms_rows = document.querySelectorAll('.SMSToggle');
+
+            if (sms_checkbox.checked) {
+                sms_rows.forEach(sms_row => {
+                    sms_row.style.display = 'table-row';
                 });
             } else {
-                rows.forEach(row => {
-                    row.style.display = 'none';
+                sms_rows.forEach(sms_row => {
+                    sms_row.style.display = 'none';
                 });
             }
         }
 
         function showHideTM() {
-            const checkbox = document.getElementById("TMEnable");
-            const rows = document.querySelectorAll('.TMToggle');
+            const tm_checkbox = document.getElementById("TMEnable");
+            const tm_rows = document.querySelectorAll('.TMToggle');
 
-            if (checkbox.checked) {
-                rows.forEach(row => {
-                    row.style.display = 'table-row';
+            if (tm_checkbox.checked) {
+                tm_rows.forEach(tm_row => {
+                    tm_row.style.display = 'table-row';
                 });
             } else {
-                rows.forEach(row => {
-                    row.style.display = 'none';
+                tm_rows.forEach(tm_row => {
+                    tm_row.style.display = 'none';
                 });
             }
         }
     </script>
 
-
 <?php
-function show_form($message, $auth, $label = "", $print_again = false, $color = "#008EC2") {
+function show_form($message, $label = "", $print_again = false, $color = "#008EC2") {
 	$accessToken = $_SESSION['access_token'];
 	$accountId = $_SESSION['account_id'];
 	$extensionId = $_SESSION['extension_id'];
+	$client_id = htmlspecialchars(strip_tags($_GET['cid']));
+
+	$table = "clients";
+	$columns_data = "*";
+	$where_info = array("client_id", $client_id);
+	$db_result = db_record_select($table, $columns_data, $where_info);
+
 	?>
     <form action="" method="post">
         <table class="CustomTable">
@@ -76,7 +87,17 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
             </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol_left">
-                    <input type="checkbox" id="SMSEnable" onClick="showHideSMS()">Enable
+                    <input type="checkbox" name="SMSEnableToggle" id="SMSEnable" onClick="showHideSMS()"
+						<?php
+						if ($db_result[0]['from_number'] >= 0) {
+							echo " checked";
+						}
+						if ($print_again) {
+							if ($_POST['SMSEnableToggle'] == "on") {
+								echo " checked";
+							}
+						} ?>
+                    >Enable
                 </td>
             </tr>
 			<?php $response = list_extension_sms_enabled_numbers($accessToken, $accountId, $extensionId); ?>
@@ -94,18 +115,23 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
 					<?php required_field(); ?>
                 </td>
                 <td class="addform_right_col">
-					<?php
-					if (!$response) {
-						echo "<span style=\"color: red; \">No SMS enabled phone numbers were found for that account</span>";
-					} else { ?>
-                        <select name="from_number">
-                            <option selected value="-1">Choose a From Number</option>
-							<?php
-							foreach ($response as $record) { ?>
-                                <option value="<?php echo $record['phoneNumber']; ?>"><?php echo $record['phoneNumber']; ?></option>
-							<?php } ?>
-                        </select>
-					<?php } ?>
+                    <select name="from_number">
+						<?php
+						if ($db_result[0]['from_number'] >= 0) {
+							$from_number = $db_result[0]['from_number'];
+							echo "<option selected value='" . $from_number . "'>" . $from_number . "</option>";
+						}
+						if ($print_again) {
+							if ($_POST['from_number'] == "-1") {
+								echo "<option selected value='-1'>Choose a From Number</option>";
+							} else {
+								echo "<option selected value='" . $_POST['from_number'] . "'>" . $_POST['from_number'] . "</option>";
+							}
+						}
+						foreach ($response as $record) { ?>
+                            <option value="<?php echo $record['phoneNumber']; ?>"><?php echo $record['phoneNumber']; ?></option>
+						<?php } ?>
+                    </select>
                 </td>
             </tr>
             <tr class="CustomTable SMSToggle">
@@ -115,28 +141,44 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
                 </td>
                 <td class="addform_right_col">
                     <input type="text" name="to_number" value="<?php
-					if ($print_again) {
-						echo strip_tags($_POST['to_number']);
+					$output = "";
+					if ($db_result[0]['to_number'] >= 0) {
+						$output = strip_tags($db_result[0]['to_number']);
 					}
+					if ($print_again) {
+						$output = strip_tags($_POST['to_number']);
+					}
+					echo $output;
 					?>">
                 </td>
             </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol_left">
 					<?php
-					echo_plain_text("AND / OR", "red", "large", 1);
+					echo_plain_text("AND / OR", "green", "large", 1);
 					echo_plain_text("Receive Audit Trail notifications via RingCentral Team Messaging", "", "medium"); ?>
                 </td>
             </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol_left">
-                    <input type="checkbox" id="TMEnable" onClick="showHideTM()">Enable
+                    <input type="checkbox" name="TMEnableToggle" id="TMEnable" onClick="showHideTM()"
+						<?php
+						if ($db_result[0]['team_chat_id'] >= 0) {
+							echo " checked";
+						}
+						if ($print_again) {
+							if ($_POST['TMEnableToggle'] == "on") {
+								echo " checked";
+							}
+						} ?>
+                    >Enable
                 </td>
             </tr>
-			<?php $response = list_tm_teams($accessToken); ?>
+			<?php
+			$response = list_tm_teams($db_result[0]['access']); ?>
             <tr class="CustomTable TMToggle">
                 <td class="addform_left_col">
-                    <p style='display: inline; <?php if ($label == "chat_id") echo "color:red"; ?>'>Available Group Chats:</p>
+                    <p style='display: inline; <?php if ($label == "chat_id") echo "color:red"; ?>'>Team Chats:</p>
 					<?php required_field(); ?>
                 </td>
                 <td class="addform_right_col">
@@ -145,18 +187,37 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
 						echo "<span style=\"color: red; \">No Team Chats are currently available</span>";
 					} else { ?>
                         <select name="chat_id">
-                            <option selected value="-1">Choose Team to Post Chat into</option>
 							<?php
+							if ($db_result[0]['team_chat_id'] >= 0) {
+                                // get chat name from RC based on chat id and access key
+                                $group_name = getTMChatName($db_result[0]['team_chat_id'], $db_result[0]['access']) ;
+								echo "<option selected value='" . $db_result[0]['team_chat_id'] . "'>" . $group_name . "</option>";
+							}
+							if ($print_again) {
+								$parts = explode("/", $_POST['chat_id']);
+								$chat_id = $parts[0];
+								$group_name = $parts[1];
+								if ($chat_id == "-1") {
+									echo "<option selected value='-1'>Select a Team Chat in which to post notifications</option>";
+								} else {
+									echo "<option selected value='" . $chat_id . "'>" . $group_name . "</option>";
+								}
+							}
 							foreach ($response['records'] as $record) { ?>
-                                <option value="<?php echo $record['id']; ?>"><?php echo $record['name']; ?></option>
+                                <option value="<?php echo $record['id'] . "/" . $record['name']; ?>"><?php echo $record['name']; ?></option>
 							<?php } ?>
                         </select>
 					<?php } ?>
                 </td>
             </tr>
             <tr class="CustomTable">
-                <td colspan="2" class="CustomTableFullCol">
+                <td class="CustomTableFullCol">
+                    <br/>
                     <input type="submit" class="submit_button" value="   Save   " name="save">
+                </td>
+                <td class="CustomTableFullCol">
+                    <br/>
+                    <input type="submit" class="submit_button" value="   Logout   " name="logout">
                 </td>
             </tr>
             <tr class="CustomTable">
@@ -169,7 +230,7 @@ function show_form($message, $auth, $label = "", $print_again = false, $color = 
 	<?php
 }
 
-function check_form($auth) {
+function check_form() {
 	$print_again = false;
 	$label = "";
 	$message = "";
@@ -200,7 +261,7 @@ function check_form($auth) {
 	if ($print_again == true) {
 		$color = "red";
 //        $message .= " From: " . $from_number . " chat id: " .  $chat_id;
-		show_form($message, $auth, $label, $print_again, $color);
+		show_form($message, $label, $print_again, $color);
 	} else {
 		// update the record with validated information
 		$accountId = $_SESSION['account_id'];
@@ -240,22 +301,20 @@ function check_form($auth) {
 /* ============= */
 /*  --- MAIN --- */
 /* ============= */
+
 if (isset($_SESSION['form_token']) && $_GET['token'] == $_SESSION['form_token']) {
-	$auth = $_GET['auth'];
 	if (isset($_POST['save'])) {
-		check_form($auth);
-	} elseif ($auth == 1) {
-		$message = "Your account has already been authorized please make any desired edits";
-		show_form($message, $auth);
-	} elseif ($auth == 2) {
-		$message = "Your account will be authorized. <br/> Please provide the following additional information";
-		show_form($message, $auth);
-	} elseif ($auth == 0) {
-		$message = "The provided account is not an admin level account.";
-		show_form($message, $auth);
+		check_form();
+	} else {
+		$message = "Your account has already been authorized. <br/> Please make any changes to the settings that we currently have for you.";
+		show_form($message);
+	}
+	if (isset($_POST['logout'])) {
+		$_SESSION['form_token'] = "";
+		header("Location: index.php");
 	}
 } else {
-    $_SESSION['form_token'] = "";
+	$_SESSION['form_token'] = "";
 	header("Location: index.php");
 }
 

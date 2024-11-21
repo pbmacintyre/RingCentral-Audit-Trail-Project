@@ -81,14 +81,15 @@ if (isset($_GET['code'])) {
 	$where_info = array("account", $accountId, "extension_id", $extensionId,);
 	$condition = "AND";
 	$db_result = db_record_select($table, $columns_data, $where_info, $condition);
+	$client_id = $db_result[0]['client_id'];
 
 	if (!$isAdmin) {
 		// not admin level
 		header("Location: index.php?auth=0");
 	}
-	if ($db_result['client_id']) {
+	if ($client_id) {
 		// already in the DB allow for editing auth = 1
-		header("Location: authorized_edit.php?token=$_SESSION[form_token]");
+		header("Location: authorized_edit.php?cid=$client_id&token=$_SESSION[form_token]");
 	} else {
 		// admin level account so save the information to the DB auth = 2
 		$columns_data = array(
