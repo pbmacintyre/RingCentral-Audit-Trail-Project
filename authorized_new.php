@@ -21,31 +21,31 @@ page_header();
         };
 
         function showHideSMS() {
-            const checkbox = document.getElementById("SMSEnable");
-            const rows = document.querySelectorAll('.SMSToggle');
+            const sms_checkbox = document.getElementById("SMSEnable");
+            const sms_rows = document.querySelectorAll('.SMSToggle');
 
-            if (checkbox.checked) {
-                rows.forEach(row => {
-                    row.style.display = 'table-row';
+            if (sms_checkbox.checked) {
+                sms_rows.forEach(sms_row => {
+                    sms_row.style.display = 'table-row';
                 });
             } else {
-                rows.forEach(row => {
-                    row.style.display = 'none';
+                sms_rows.forEach(sms_row => {
+                    sms_row.style.display = 'none';
                 });
             }
         }
 
         function showHideTM() {
-            const checkbox = document.getElementById("TMEnable");
-            const rows = document.querySelectorAll('.TMToggle');
+            const tm_checkbox = document.getElementById("TMEnable");
+            const tm_rows = document.querySelectorAll('.TMToggle');
 
-            if (checkbox.checked) {
-                rows.forEach(row => {
-                    row.style.display = 'table-row';
+            if (tm_checkbox.checked) {
+                tm_rows.forEach(tm_row => {
+                    tm_row.style.display = 'table-row';
                 });
             } else {
-                rows.forEach(row => {
-                    row.style.display = 'none';
+                tm_rows.forEach(tm_row => {
+                    tm_row.style.display = 'none';
                 });
             }
         }
@@ -56,6 +56,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
 	$accessToken = $_SESSION['access_token'];
 	$accountId = $_SESSION['account_id'];
 	$extensionId = $_SESSION['extension_id'];
+//    echo_spaces("Post Array", $_POST);
 
 	?>
     <form action="" method="post">
@@ -112,7 +113,11 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
                         <select name="from_number">
 							<?php
 							if ($print_again) {
-								echo "<option selected value='" . $_POST['from_number'] . "'>" . $_POST['from_number'] . "</option>";
+                                if ($_POST['from_number'] == "-1") {
+									echo "<option selected value='-1'>Choose a From Number</option>";
+								} else {
+									echo "<option selected value='" . $_POST['from_number'] . "'>" . $_POST['from_number'] . "</option>";
+								}
 							} else {
 								echo "<option selected value='-1'>Choose a From Number</option>";
 							}
@@ -139,7 +144,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol_left">
 					<?php
-					echo_plain_text("AND / OR", "red", "large", 1);
+					echo_plain_text("AND / OR", "green", "large", 1);
 					echo_plain_text("Receive Audit Trail notifications via RingCentral Team Messaging", "", "medium"); ?>
                 </td>
             </tr>
@@ -157,8 +162,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
 			<?php $response = list_tm_teams($accessToken); ?>
             <tr class="CustomTable TMToggle">
                 <td class="addform_left_col">
-                    <p style='display: inline; <?php if ($label == "chat_id") echo "color:red"; ?>'>Available Group
-                        Chats:</p>
+                    <p style='display: inline; <?php if ($label == "chat_id") echo "color:red"; ?>'>Team Chats:</p>
 					<?php required_field(); ?>
                 </td>
                 <td class="addform_right_col">
@@ -172,9 +176,13 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
 								$parts = explode("/", $_POST['chat_id']);
 								$chat_id = $parts[0];
 								$group_name = $parts[1];
-								echo "<option selected value='" . $chat_id . "'>" . $group_name . "</option>";
+                                if ($chat_id == "-1") {
+									echo "<option selected value='-1'>Select a Team Chat in which to post notifications</option>";
+								} else {
+									echo "<option selected value='" . $chat_id . "'>" . $group_name . "</option>";
+								}
 							} else {
-								echo "<option selected value='-1'>Choose Team to Post Chat into</option>";
+								echo "<option selected value='-1'>Select a Team Chat in which to post notifications</option>";
 							}
 							foreach ($response['records'] as $record) { ?>
                                 <option value="<?php echo $record['id'] . "/" . $record['name']; ?>"><?php echo $record['name']; ?></option>
@@ -185,6 +193,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
             </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol">
+                    <br/>
                     <input type="submit" class="submit_button" value="   Save   " name="save">
                 </td>
             </tr>
@@ -203,35 +212,45 @@ function check_form() {
 	$label = "";
 	$message = "";
 
-	// TODO change to pickup selected value
 	$from_number = htmlspecialchars(strip_tags($_POST['from_number']));
 	$to_number = htmlspecialchars(strip_tags($_POST['to_number']));
-	// TODO change to pickup selected value
-	$chat_id = htmlspecialchars(strip_tags($_POST['chat_id']));
 
-	// check the formatting of the mobile # == +19991234567
-	$pattern = '/^\+\d{11}$/'; // Assumes 11 digits after the '+'
+	$parts = explode("/", $_POST['chat_id']);
+	$chat_id = htmlspecialchars(strip_tags($parts[0]));
 
-	if ($from_number != "-1" && !preg_match($pattern, $to_number)) {
-		$print_again = true;
-		$label = "to_number";
-		$message = "The mobile TO number is not in the correct format of +19991234567";
+	$SMSEnableToggle = $_POST['SMSEnableToggle'] == "on" ? true : false ;
+	$TMEnableToggle = $_POST['TMEnableToggle'] == "on" ? true : false ;
+
+	if ($SMSEnableToggle) {
+		if ($from_number == "-1") {
+			$print_again = true;
+			$label = "from_number";
+			$message = "You need to select a phone number from the dropdown list if you enable the SMS option";
+		}
+		// check the formatting of the mobile # == +19991234567
+		$pattern = '/^\+\d{11}$/'; // Assumes 11 digits after the '+'
+
+		if (!preg_match($pattern, $to_number)) {
+			$print_again = true;
+			$label = "to_number";
+			$message = "The mobile TO number is not in the correct format of +19991234567";
+		}
 	}
-	if ($from_number != "-1" && $to_number == "") {
-		$print_again = true;
-		$label = "to_number";
-		$message = "Please provide a valid mobile number combination to receive admin messages.";
+	if ($TMEnableToggle) {
+	    if ($chat_id == "-1") {
+			$print_again = true;
+			$label = "chat_id";
+			$message = "You need to select a Team chat from the dropdown list <br/>if you enable the Team Messaging option";
+		}
 	}
-	if ($from_number == "-1" && $chat_id == "-1") {
+	if (!$SMSEnableToggle && !$TMEnableToggle) {
 		$print_again = true;
-		$label = "";
-		$message = "Please provide either a phone number combination or a Group Chat to receive admin messages.";
+		$message = "You need to enable either an SMS or Team Messaging option.";
 	}
+
 	// end edit checks
 	if ($print_again == true) {
-		$color = "red";
-//        $message .= " From: " . $from_number . " chat id: " .  $chat_id;
-		show_form($message, $label, true, $color);
+		show_form($message, $label, true, "red");
 	} else {
 		// update the record with validated information
 		$accountId = $_SESSION['account_id'];
@@ -264,7 +283,6 @@ function check_form() {
 		db_record_update($table, $fields_data, $where_info, $condition);
 
 		header("Location: authorization_complete.php");
-
 	}
 }
 

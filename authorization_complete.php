@@ -29,7 +29,12 @@ function show_form ($message) {  ?>
                     <hr>
                 </td>
             </tr>
-
+            <tr class="CustomTable">
+                <td colspan="2" class="CustomTableFullCol">
+                    <br/>
+                    <input type="submit" class="submit_button" value="   Logout   " name="logout">
+                </td>
+            </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol">
                     <?php app_version(); ?>
@@ -43,8 +48,12 @@ function show_form ($message) {  ?>
 /* ============= */
 /*  --- MAIN --- */
 /* ============= */
-$message = "Your account has been fully authorized. You will be notified at the provided contact point when admin level editing events occur on your account";
-show_form($message);
+if (isset($_POST['logout'])) {
+	header("Location: index.php");
+} else {
+	$message = "Your account has been fully authorized. You will be notified at the provided contact point(s) when admin level editing events occur on your account";
+	show_form($message);
+}
 
 ob_end_flush();
 page_footer();
