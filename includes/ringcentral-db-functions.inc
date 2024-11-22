@@ -109,25 +109,18 @@ function db_record_select ($table, $columns_data, $where_info = "", $condition =
     }
 }
 
-/**
- * @param $table
- * @param $fields_data
- * @param $where_info
- * @param $condition
- * @return void
- */
 function db_record_update ($table, $fields_data, $where_info = "", $condition = "") {
     /*
     Usage:
-    $table = "shopify_shops";
-    $where_info = array ("ringcentral_control_id", 1);  OR
+    $table = "clients";
+    $where_info = array ("client_id", 1);  OR
     $where_info = array ("from_number", "+18084652471", "webhook_token", "5", );
     $condition = "AND" or "OR"
     ONLY ALLOWS for ONE Conditional statement in the WHERE clause
-    $fields_data = $fields_data = array(
-                "firstname" => $firstname,
-                "lastname" => $lastname,
-                "store_name" => $store_name,
+    $fields_data = array(
+            "from_number" => $from_number,
+			"to_number" => $to_number,
+			"team_chat_id" => $chat_id,
             );
     db_record_update($table, $fields_data, $where_info, $condition) ;
     */

@@ -10,7 +10,7 @@ require_once('includes/ringcentral-db-functions.inc');
 require_once('includes/ringcentral-php-functions.inc');
 require_once('includes/ringcentral-curl-functions.inc');
 
-//show_errors();
+show_errors();
 
 page_header();
 ?>
@@ -237,7 +237,9 @@ function check_form() {
 
 	$from_number = htmlspecialchars(strip_tags($_POST['from_number']));
 	$to_number = htmlspecialchars(strip_tags($_POST['to_number']));
-	$chat_id = htmlspecialchars(strip_tags($_POST['chat_id']));
+
+    $parts = explode("/", $_POST['chat_id']);
+	$chat_id = htmlspecialchars(strip_tags($parts[0]));
 
 	// check the formatting of the mobile # == +19991234567
 	$pattern = '/^\+\d{11}$/'; // Assumes 11 digits after the '+'
@@ -260,38 +262,44 @@ function check_form() {
 	// end edit checks
 	if ($print_again == true) {
 		$color = "red";
-//        $message .= " From: " . $from_number . " chat id: " .  $chat_id;
 		show_form($message, $label, $print_again, $color);
 	} else {
 		// update the record with validated information
-		$accountId = $_SESSION['account_id'];
-		$extensionId = $_SESSION['extension_id'];
 
-		$table = "clients";
-		$where_info = array("account", $accountId, "extension_id", $extensionId,);
-		$condition = "AND";
+        $client_id = htmlspecialchars(strip_tags($_GET['cid']));
+		// get the existing record again
+        $table = "clients";
+		$columns_data = "*";
+		$where_info = array("client_id", $client_id);
+		$db_result = db_record_select($table, $columns_data, $where_info);
+
+        $accountId = $db_result[0]['account'];
+        $extensionId = $db_result[0]['extension_id'];
+        $accessToken = $db_result[0]['access'];
+        $sms_webhook_id = $db_result[0]['sms_webhook'];
+
+        // update client record with new information
+		$where_info = array("client_id", $client_id);
 		$fields_data = array(
 			"from_number" => $from_number,
 			"to_number" => $to_number,
 			"team_chat_id" => $chat_id,
 		);
-		db_record_update($table, $fields_data, $where_info, $condition);
+		db_record_update($table, $fields_data, $where_info);
 
 		// create admin webhook, there may already be an admin webhook so let the function test that
-		ringcentral_create_admin_webhook_subscription($accountId, $_SESSION['access_token']);
+		ringcentral_create_admin_webhook_subscription($accountId, $accessToken);
 
-		// if from & to number exist create sms webhook,
-		if ($from_number && $to_number) {
-			$sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $_SESSION['access_token']);
-		} else {
-			$sms_webhook_id = 0;
+		// if sms webhook does not exist in DB create one
+		if ($sms_webhook_id == "") {
+			$sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $accessToken);
 		}
 
 		// store new webhook ids
 		$fields_data = array(
 			"sms_webhook" => $sms_webhook_id,
 		);
-		db_record_update($table, $fields_data, $where_info, $condition);
+		db_record_update($table, $fields_data, $where_info);
 
 		header("Location: authorization_complete.php");
 
@@ -310,11 +318,9 @@ if (isset($_SESSION['form_token']) && $_GET['token'] == $_SESSION['form_token'])
 		show_form($message);
 	}
 	if (isset($_POST['logout'])) {
-		$_SESSION['form_token'] = "";
 		header("Location: index.php");
 	}
 } else {
-	$_SESSION['form_token'] = "";
 	header("Location: index.php");
 }
 

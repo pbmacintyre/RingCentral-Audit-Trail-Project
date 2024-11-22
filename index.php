@@ -16,7 +16,6 @@ page_header(1);  // set back to 1 when recaptchas are set in the .ENV file
 function show_form ($message, $label = "", $print_again = false) { ?>
 
     <form action="" method="post">
-        <input type="hidden" name="form_token" value="<?php echo generate_form_token(); ?>">
         <table class="CustomTable">
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol">
@@ -39,7 +38,7 @@ function show_form ($message, $label = "", $print_again = false) { ?>
             </tr>
             <tr class="CustomTable">
                 <td colspan="2" class="CustomTableFullCol">
-                    <input type="submit" class="submit_button" value="   Authorize   " name="authorize">
+                    <input type="submit" class="submit_button" value="   Authorize / Login   " name="authorize">
                 </td>
             </tr>
             <tr class="CustomTable">
@@ -68,13 +67,12 @@ $client_id = $_ENV['RC_APP_CLIENT_ID'];
 $redirect_url = $_ENV['RC_REDIRECT_URL'];
 
 if (isset($_POST['authorize'])) {
-    $authorization_url = "https://platform.ringcentral.com/restapi/oauth/authorize?response_type=code&client_id={$client_id}&redirect_uri={$redirect_url}";
+	generate_form_token();
+	$authorization_url = "https://platform.ringcentral.com/restapi/oauth/authorize?response_type=code&client_id={$client_id}&redirect_uri={$redirect_url}";
     header("Location: $authorization_url");
 } else {
-    $_SESSION['login_action'] = false;
-    $message = "Please authorize your account. <br/>";
+    $message = "Please authorize your account or Login to make changes. <br/>";
     show_form($message);
 }
-
 ob_end_flush();
 page_footer();

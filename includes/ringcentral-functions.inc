@@ -131,8 +131,6 @@ function ringcentral_create_admin_webhook_subscription($accountId, $accessToken)
 			}
 		}
 	}
-//    echo_spaces("Webhook exists?", $admin_webhook_exists);
-//    echo_spaces("Webhook ID", $webhook_id);
 
 	if ($admin_webhook_exists == false) {
 		// no webhook, so create a new admin webhook and pass id back

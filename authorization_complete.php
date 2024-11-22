@@ -3,14 +3,9 @@
  * Copyright (C) 2019-2024 Paladin Business Solutions
  */
 ob_start();
-session_start();
 
 require_once('includes/ringcentral-functions.inc');
-require_once('includes/ringcentral-db-functions.inc');
 require_once('includes/ringcentral-php-functions.inc');
-require_once('includes/ringcentral-curl-functions.inc');
-
-show_errors();
 
 page_header();  // set back to 1 when recaptchas are set in the DB
 
@@ -51,9 +46,11 @@ function show_form ($message) {  ?>
 if (isset($_POST['logout'])) {
 	header("Location: index.php");
 } else {
-	$message = "Your account has been fully authorized. You will be notified at the provided contact point(s) when admin level editing events occur on your account";
+	$message = "Your account has been fully authorized and any edits have been saved. You will be notified 
+	at the provided contact point(s) when admin level editing events occur on your account";
 	show_form($message);
 }
 
 ob_end_flush();
+
 page_footer();
