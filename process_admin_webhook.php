@@ -16,7 +16,7 @@ require('includes/vendor/autoload.php');
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/includes")->load();
 
-show_errors();
+//show_errors();
 
 $client_id = $_ENV['RC_APP_CLIENT_ID'];
 $client_secret = $_ENV['RC_APP_CLIENT_SECRET'];

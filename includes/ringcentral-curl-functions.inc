@@ -64,7 +64,7 @@ function get_audit_data($accessToken, $timeStamp) {
 			"initiator extensionId" => $value['initiator']['extensionId'],
 			"initiator extensionNumber" => $value['initiator']['extensionNumber'],
 			"target name" => $value['target']['name'],
-			"target extensionId" => $value['target']['objectId'],
+			"target SW account Id" => $value['target']['objectId'],
 			"target extensionNumber" => $value['target']['extensionNumber'],
 			// "actionId" => $data['records']['accountID'],
 		];
@@ -182,12 +182,12 @@ function send_admin_sms($destination_array, $audit_data) {
 			$newValue = $value2['new value'];
 			$initiator = $value2['initiator name'];
 			$target_name = $value2['target name'];
-			$extension = $value2['target extensionId'];
+			$target_SW_account_id = $value2['target SW account Id'];
+			$extension_num = $value2['target extensionNumber'];
 
-			$message = "$eventTime: The setting '$settingChanged' for $target_name (extension #: $extension) was changed 
-            from '$oldValue' to '$newValue' by: $initiator. ";
+			$message = "$eventTime: The setting '$settingChanged' for $target_name (Extension #: $extension_num, SW Account #: $target_SW_account_id) was changed from '$oldValue' to '$newValue' by: $initiator";
 
-			$message .= "To opt out at any time, simply reply with STOP.";
+			$message .= " To opt out at any time, simply reply with STOP.";
 
 			$sms_data = [
 				'from' => array('phoneNumber' => $fromNumber),
@@ -226,9 +226,10 @@ function send_team_message($destination_array, $audit_data) {
 			$newValue = $value2['new value'];
 			$initiator = $value2['initiator name'];
 			$target_name = $value2['target name'];
-			$extension = $value2['target extensionId'];
+			$target_SW_account_id = $value2['target SW account Id'];
+			$extension_num = $value2['target extensionNumber'];
 
-			$message = "$eventTime: The setting '$settingChanged' for $target_name (extension #: $extension) was changed from '$oldValue' to '$newValue' by: $initiator";
+			$message = "$eventTime: The setting '$settingChanged' for $target_name (Extension #: $extension_num, SW Account #: $target_SW_account_id) was changed from '$oldValue' to '$newValue' by: $initiator";
 
 			$data = [
 				'text' => $message,

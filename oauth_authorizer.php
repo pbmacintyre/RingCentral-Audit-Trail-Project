@@ -75,6 +75,9 @@ if (isset($_GET['code'])) {
 	// see if this is an admin level account
 	$isAdmin = is_admin($accessToken, $accountId, $extensionId);
 
+//	echo_spaces("admin ?", $isAdmin);
+//	exit();
+
 	// check if this account has already been saved to the DB
 	$table = "clients";
 	$columns_data = array("client_id");
@@ -83,11 +86,10 @@ if (isset($_GET['code'])) {
 	$db_result = db_record_select($table, $columns_data, $where_info, $condition);
 	$client_id = $db_result[0]['client_id'];
 
-	if (!$isAdmin) {
+	if ($isAdmin == false) {
 		// not admin level
-		header("Location: index.php?auth=0");
-	}
-	if ($client_id) {
+		header("Location: index.php?auth=N");
+	} elseif ($client_id) {
 		// already in the DB allow for editing
 		header("Location: authorized_edit.php?cid=$client_id&token=$_SESSION[form_token]");
 	} else {
@@ -99,6 +101,8 @@ if (isset($_GET['code'])) {
 
 		header("Location: authorized_new.php?token=$_SESSION[form_token]");
 	}
+} elseif ($_GET['error'] == "access_denied") {
+	header("Location: index.php?auth=X");
 }
 
 ob_end_flush();
