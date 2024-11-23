@@ -9,10 +9,10 @@
 /* ========================== */
 function page_header($recap = 0, $errors = 0) {
     if ($errors == 1) { show_errors(); }
-    echo "<html class='SiteWide'><head >";
+    echo "<!DOCTYPE html><html class='SiteWide'><head >";
     if ($recap) { ringcentral_build_recaptcha_v3_top(); }
-    echo "<title >Audit Trail App</title></head>";
-    echo "<link rel='stylesheet' href='css/ringcentral-custom.css'>";
+    echo "<title >Audit Trail App</title>";
+    echo "<link rel='stylesheet' href='css/ringcentral-custom.css'></head>";
 }
 function page_footer() {
     echo "</html>";

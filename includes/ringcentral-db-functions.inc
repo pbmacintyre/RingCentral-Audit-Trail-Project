@@ -19,7 +19,7 @@ function db_credentials () {
     return new PDO("pgsql:host=$servername;dbname=$dbname", $username, $password);
 }
 
-function db_record_insert ($table, $columns_data) {
+function db_record_insert ($table, $columns_data, $primary="") {
     /*
     Usage:
     $table = "table_name";
@@ -27,7 +27,7 @@ function db_record_insert ($table, $columns_data) {
        "user_email" => "pbmacintyre@example.com",
        "firstname" => "Peter",
        "lastname" => "Johnston",   );
-    db_record_insert($table, $columns_data );
+    $new_client_id = db_record_insert($table, $columns_data, "client_id");
     */
 
     $values = "";
@@ -45,7 +45,7 @@ function db_record_insert ($table, $columns_data) {
     $length = strlen($values);
     $values = substr($values, 0, $length - 2) . substr($values, -1);
 
-    $sql .= ") VALUES (" . $values . ")";
+    $sql .= ") VALUES (" . $values . ") RETURNING $primary";
 
     $stmt = $conn->prepare($sql);
 
@@ -54,6 +54,7 @@ function db_record_insert ($table, $columns_data) {
         $stmt->bindParam(":$key", $columns_data["$key"]);
     }
     $stmt->execute();
+	return $stmt->fetchColumn();
 }
 
 function db_record_select ($table, $columns_data, $where_info = "", $condition = "") {

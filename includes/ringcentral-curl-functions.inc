@@ -273,6 +273,9 @@ function refresh_tokens($refreshToken, $client_id, $client_secret) {
 	curl_setopt($new_ch, CURLOPT_HTTPHEADER, $refresh_headers);
 
 	$new_response = curl_exec($new_ch);
+	// Display response
+    // echo_spaces("Response", $new_response);
+
 	curl_close($new_ch);
 
 	$refresh_data = json_decode($new_response, true);
@@ -496,13 +499,13 @@ function send_stop_sms($fromNumber, $toNumber) {
 
 }
 
-function kill_sms_webhook($fromNumber, $toNumber) {
+function kill_sms_webhook($client_id) {
 
 	$table = "clients";
 	$columns_data = array("access", "sms_webhook");
-	$where_info = array("from_number", $fromNumber, "to_number", $toNumber,);
-	$condition = "AND";
-	$db_result = db_record_select($table, $columns_data, $where_info, $condition);
+	$where_info = array("client_id", $client_id,);
+	$db_result = db_record_select($table, $columns_data, $where_info);
+
 	$accessToken = $db_result[0]['access'];
 	$subscription_id = $db_result[0]['sms_webhook'];
 
@@ -524,10 +527,10 @@ function kill_sms_webhook($fromNumber, $toNumber) {
 	curl_close($subscription_del_ch);
 
 	// remove sms_webhook id from DB
-	$fields_data = $fields_data = array(
+	$fields_data = array(
 		"sms_webhook" => "",
 	);
-	db_record_update($table, $fields_data, $where_info, $condition);
+	db_record_update($table, $fields_data, $where_info);
 
 }
 

@@ -64,7 +64,8 @@ if (preg_match('/^(TODAY)$/i', $incoming_sms)) {
     //if (preg_match('/^(STOP)|(END)|(CANCEL)|(UNSUBSCRIBE)|(QUIT)$/i', $incoming_sms)) {
     send_stop_sms($fromNumber, $toNumber);
     // remove numbers from the clients table.
-    kill_sms_webhook($fromNumber, $toNumber);
+    //TODO update this process with sms_webhook id from the client DB record if possible.
+	kill_sms_webhook($fromNumber, $toNumber);
 }
 
 

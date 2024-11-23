@@ -7,7 +7,7 @@ require_once('includes/ringcentral-db-functions.inc');
 require_once('includes/ringcentral-php-functions.inc');
 require_once('includes/ringcentral-curl-functions.inc');
 
-show_errors();
+//show_errors();
 
 require('includes/vendor/autoload.php');
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/includes")->load();
@@ -88,19 +88,14 @@ if (isset($_GET['code'])) {
 		header("Location: index.php?auth=0");
 	}
 	if ($client_id) {
-		// already in the DB allow for editing auth = 1
+		// already in the DB allow for editing
 		header("Location: authorized_edit.php?cid=$client_id&token=$_SESSION[form_token]");
 	} else {
-		// admin level account so save the information to the DB auth = 2
-		$columns_data = array(
-			"account" => $accountId,
-			"extension_id" => $extensionId,
-			"access" => $accessToken,
-			"refresh" => $refreshToken,);
-		db_record_insert($table, $columns_data);
+		// admin level account so save the information to the Session
 		$_SESSION['account_id'] = $accountId;
 		$_SESSION['extension_id'] = $extensionId;
 		$_SESSION['access_token'] = $accessToken;
+		$_SESSION['refresh_token'] = $refreshToken;
 
 		header("Location: authorized_new.php?token=$_SESSION[form_token]");
 	}

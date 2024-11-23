@@ -10,7 +10,7 @@ require_once('includes/ringcentral-db-functions.inc');
 require_once('includes/ringcentral-php-functions.inc');
 require_once('includes/ringcentral-curl-functions.inc');
 
-show_errors();
+//show_errors();
 
 page_header();
 ?>
@@ -53,16 +53,15 @@ page_header();
 
 <?php
 function show_form($message, $label = "", $print_again = false, $color = "#008EC2") {
-	$accessToken = $_SESSION['access_token'];
-	$accountId = $_SESSION['account_id'];
-	$extensionId = $_SESSION['extension_id'];
+//	$accessToken = $_SESSION['access_token'];
+//	$accountId = $_SESSION['account_id'];
+//	$extensionId = $_SESSION['extension_id'];
 	$client_id = htmlspecialchars(strip_tags($_GET['cid']));
 
 	$table = "clients";
 	$columns_data = "*";
 	$where_info = array("client_id", $client_id);
 	$db_result = db_record_select($table, $columns_data, $where_info);
-
 	?>
     <form action="" method="post">
         <table class="CustomTable">
@@ -100,7 +99,6 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
                     >Enable
                 </td>
             </tr>
-			<?php $response = list_extension_sms_enabled_numbers($accessToken, $accountId, $extensionId); ?>
             <tr class="CustomTable SMSToggle">
                 <td>
                     <!--  blank column for formatting -->
@@ -128,6 +126,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
 								echo "<option selected value='" . $_POST['from_number'] . "'>" . $_POST['from_number'] . "</option>";
 							}
 						}
+						$response = list_extension_sms_enabled_numbers($db_result[0]['access'], $db_result[0]['account'], $db_result[0]['extension_id']);
 						foreach ($response as $record) { ?>
                             <option value="<?php echo $record['phoneNumber']; ?>"><?php echo $record['phoneNumber']; ?></option>
 						<?php } ?>
@@ -189,8 +188,8 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
                         <select name="chat_id">
 							<?php
 							if ($db_result[0]['team_chat_id'] >= 0) {
-                                // get chat name from RC based on chat id and access key
-                                $group_name = getTMChatName($db_result[0]['team_chat_id'], $db_result[0]['access']) ;
+								// get chat name from RC based on chat id and access key
+								$group_name = getTMChatName($db_result[0]['team_chat_id'], $db_result[0]['access']);
 								echo "<option selected value='" . $db_result[0]['team_chat_id'] . "'>" . $group_name . "</option>";
 							}
 							if ($print_again) {
@@ -238,27 +237,39 @@ function check_form() {
 	$from_number = htmlspecialchars(strip_tags($_POST['from_number']));
 	$to_number = htmlspecialchars(strip_tags($_POST['to_number']));
 
-    $parts = explode("/", $_POST['chat_id']);
+	$parts = explode("/", $_POST['chat_id']);
 	$chat_id = htmlspecialchars(strip_tags($parts[0]));
 
-	// check the formatting of the mobile # == +19991234567
-	$pattern = '/^\+\d{11}$/'; // Assumes 11 digits after the '+'
+    $SMSEnableToggle = $_POST['SMSEnableToggle'] == "on" ? true : false;
+	$TMEnableToggle = $_POST['TMEnableToggle'] == "on" ? true : false;
 
-	if ($from_number != "-1" && !preg_match($pattern, $to_number)) {
-		$print_again = true;
-		$label = "to_number";
-		$message = "The mobile TO number is not in the correct format of +19991234567";
+	if ($SMSEnableToggle) {
+		if ($from_number == "-1") {
+			$print_again = true;
+			$label = "from_number";
+			$message = "You need to select a phone number from the dropdown list if you enable the SMS option";
+		}
+		// check the formatting of the mobile # == +19991234567
+		$pattern = '/^\+\d{11}$/'; // Assumes 11 digits after the '+'
+
+		if (!preg_match($pattern, $to_number)) {
+			$print_again = true;
+			$label = "to_number";
+			$message = "The mobile TO number is not in the correct format of +19991234567";
+		}
 	}
-	if ($from_number != "-1" && $to_number == "") {
-		$print_again = true;
-		$label = "to_number";
-		$message = "Please provide a valid mobile number combination to receive admin messages.";
+	if ($TMEnableToggle) {
+		if ($chat_id == "-1") {
+			$print_again = true;
+			$label = "chat_id";
+			$message = "You need to select a Team chat from the dropdown list <br/>if you enable the Team Messaging option";
+		}
 	}
-	if ($from_number == "-1" && $chat_id == "-1") {
+	if (!$SMSEnableToggle && !$TMEnableToggle) {
 		$print_again = true;
-		$label = "";
-		$message = "Please provide either a phone number combination or a Group Chat to receive admin messages.";
+		$message = "You need to enable either an SMS or Team Messaging option.";
 	}
+
 	// end edit checks
 	if ($print_again == true) {
 		$color = "red";
@@ -266,19 +277,38 @@ function check_form() {
 	} else {
 		// update the record with validated information
 
-        $client_id = htmlspecialchars(strip_tags($_GET['cid']));
+		$client_id = htmlspecialchars(strip_tags($_GET['cid']));
 		// get the existing record again
-        $table = "clients";
+		$table = "clients";
 		$columns_data = "*";
 		$where_info = array("client_id", $client_id);
 		$db_result = db_record_select($table, $columns_data, $where_info);
 
-        $accountId = $db_result[0]['account'];
-        $extensionId = $db_result[0]['extension_id'];
-        $accessToken = $db_result[0]['access'];
-        $sms_webhook_id = $db_result[0]['sms_webhook'];
+		$accountId = $db_result[0]['account'];
+		$extensionId = $db_result[0]['extension_id'];
+		$accessToken = $db_result[0]['access'];
+		$sms_webhook_id = $db_result[0]['sms_webhook'];
 
-        // update client record with new information
+		if ($_POST['SMSEnableToggle'] != 'on') {
+			$from_number = "";
+			$to_number = "";
+            // kill the sms_webhook and remove id from the client record
+            kill_sms_webhook($client_id);
+		} else {
+			// if MS toggle is on and phone numbers are not blank (provided) create the SMS webhook
+            $sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $accessToken);
+			// store new webhook ids
+			$fields_data = array(
+				"sms_webhook" => $sms_webhook_id,
+			);
+			db_record_update($table, $fields_data, $where_info);
+        }
+
+		if ($_POST['TMEnableToggle'] != 'on') {
+			$chat_id = "";
+		}
+
+		// update client record with new information
 		$where_info = array("client_id", $client_id);
 		$fields_data = array(
 			"from_number" => $from_number,
@@ -289,17 +319,6 @@ function check_form() {
 
 		// create admin webhook, there may already be an admin webhook so let the function test that
 		ringcentral_create_admin_webhook_subscription($accountId, $accessToken);
-
-		// if sms webhook does not exist in DB create one
-		if ($sms_webhook_id == "") {
-			$sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $accessToken);
-		}
-
-		// store new webhook ids
-		$fields_data = array(
-			"sms_webhook" => $sms_webhook_id,
-		);
-		db_record_update($table, $fields_data, $where_info);
 
 		header("Location: authorization_complete.php");
 

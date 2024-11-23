@@ -113,7 +113,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
                         <select name="from_number">
 							<?php
 							if ($print_again) {
-                                if ($_POST['from_number'] == "-1") {
+								if ($_POST['from_number'] == "-1") {
 									echo "<option selected value='-1'>Choose a From Number</option>";
 								} else {
 									echo "<option selected value='" . $_POST['from_number'] . "'>" . $_POST['from_number'] . "</option>";
@@ -176,7 +176,7 @@ function show_form($message, $label = "", $print_again = false, $color = "#008EC
 								$parts = explode("/", $_POST['chat_id']);
 								$chat_id = $parts[0];
 								$group_name = $parts[1];
-                                if ($chat_id == "-1") {
+								if ($chat_id == "-1") {
 									echo "<option selected value='-1'>Select a Team Chat in which to post notifications</option>";
 								} else {
 									echo "<option selected value='" . $chat_id . "'>" . $group_name . "</option>";
@@ -218,8 +218,8 @@ function check_form() {
 	$parts = explode("/", $_POST['chat_id']);
 	$chat_id = htmlspecialchars(strip_tags($parts[0]));
 
-	$SMSEnableToggle = $_POST['SMSEnableToggle'] == "on" ? true : false ;
-	$TMEnableToggle = $_POST['TMEnableToggle'] == "on" ? true : false ;
+	$SMSEnableToggle = $_POST['SMSEnableToggle'] == "on" ? true : false;
+	$TMEnableToggle = $_POST['TMEnableToggle'] == "on" ? true : false;
 
 	if ($SMSEnableToggle) {
 		if ($from_number == "-1") {
@@ -237,7 +237,7 @@ function check_form() {
 		}
 	}
 	if ($TMEnableToggle) {
-	    if ($chat_id == "-1") {
+		if ($chat_id == "-1") {
 			$print_again = true;
 			$label = "chat_id";
 			$message = "You need to select a Team chat from the dropdown list <br/>if you enable the Team Messaging option";
@@ -252,35 +252,42 @@ function check_form() {
 	if ($print_again == true) {
 		show_form($message, $label, true, "red");
 	} else {
-		// update the record with validated information
 		$accountId = $_SESSION['account_id'];
 		$extensionId = $_SESSION['extension_id'];
+		$accessToken = $_SESSION['access_token'];
+		$refreshToken = $_SESSION['refresh_token'];
 
+//        echo_spaces("session", $_SESSION);
+//        echo_spaces("post", $_POST);
+
+		// insert the record into DB with validated information
 		$table = "clients";
-		$where_info = array("account", $accountId, "extension_id", $extensionId,);
-		$condition = "AND";
-		$fields_data = array(
+		$columns_data = array(
+			"account" => $accountId,
+			"extension_id" => $extensionId,
+			"access" => $accessToken,
+			"refresh" => $refreshToken,
 			"from_number" => $from_number,
 			"to_number" => $to_number,
-			"team_chat_id" => $chat_id,
-		);
-		db_record_update($table, $fields_data, $where_info, $condition);
+			"team_chat_id" => $chat_id,);
+		$new_client_id = db_record_insert($table, $columns_data, "client_id");
 
 		// create admin webhook, there may already be an admin webhook so let the function test that
-		ringcentral_create_admin_webhook_subscription($accountId, $_SESSION['access_token']);
+		ringcentral_create_admin_webhook_subscription($accountId, $accessToken);
 
 		// if from & to number exist create sms webhook,
 		if ($from_number && $to_number) {
-			$sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $_SESSION['access_token']);
+			$sms_webhook_id = ringcentral_create_sms_webhook_subscription($accountId, $extensionId, $accessToken);
 		} else {
 			$sms_webhook_id = 0;
 		}
 
 		// store new webhook ids
+		$where_info = array("client_id", $new_client_id,);
 		$fields_data = array(
 			"sms_webhook" => $sms_webhook_id,
 		);
-		db_record_update($table, $fields_data, $where_info, $condition);
+		db_record_update($table, $fields_data, $where_info);
 
 		header("Location: authorization_complete.php");
 	}

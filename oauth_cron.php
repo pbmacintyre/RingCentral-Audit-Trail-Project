@@ -11,6 +11,8 @@ require_once(__DIR__ . '/includes/ringcentral-db-functions.inc');
 require_once(__DIR__ . '/includes/ringcentral-functions.inc');
 require_once(__DIR__ . '/includes/ringcentral-curl-functions.inc');
 
+show_errors();
+
 require(__DIR__ . '/includes/vendor/autoload.php');
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/includes")->load();
@@ -25,7 +27,9 @@ $db_result = db_record_select($table, $columns_data);
 foreach ($db_result as $row) {
     $tokens = refresh_tokens($row['refresh'], $client_id, $client_secret);
 
-    // save newly created client information
+//	echo_spaces("Tokens", $tokens);
+
+	// save newly created client information
     $table = "clients";
     $where_info = array ("account", $row['account']);
     $fields_data = $fields_data = array(
@@ -36,5 +40,5 @@ foreach ($db_result as $row) {
 }
 
 //$message = "CRON runs every 30 minutes";
-//echo_spaces("tokens refreshed");
+echo_spaces("CRON code finished running");
 //send_basic_sms ($tokens['accessToken'], $message);
