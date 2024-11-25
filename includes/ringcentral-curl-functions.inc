@@ -467,10 +467,12 @@ function list_extension_sms_enabled_numbers($accessToken, $accountId, $extension
 function send_stop_sms($fromNumber, $toNumber) {
 
 	$table = "clients";
-	$columns_data = array("access");
+	$columns_data = array("client_id", "access");
 	$where_info = array("from_number", $fromNumber, "to_number", $toNumber,);
 	$condition = "AND";
 	$db_result = db_record_select($table, $columns_data, $where_info, $condition);
+
+	$clientId = $db_result[0]['client_id'];
 	$accessToken = $db_result[0]['access'];
 
 	$endpoint = 'https://platform.ringcentral.com/restapi/v1.0/account/~/extension/~/sms';
@@ -498,6 +500,7 @@ function send_stop_sms($fromNumber, $toNumber) {
 	$sms_response = curl_exec($sms_ch);
 	curl_close($sms_ch);
 
+	return $clientId ;
 }
 
 function kill_sms_webhook($client_id) {

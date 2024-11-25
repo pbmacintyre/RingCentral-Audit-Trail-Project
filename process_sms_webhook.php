@@ -50,22 +50,20 @@ if (!$incoming_data) {
 // parse out the incoming information
 $incoming_sms = $incoming_data->body->subject;
 
-// the shops mobile number
-$toNumber = $incoming_data->body->to[0]->phoneNumber;
+// the clients mobile number, end customer is sending to client so from and to are reversed here
+$toNumber = $incoming_data->body->from->phoneNumber;
 // the customers mobile number
-$fromNumber = $incoming_data->body->from->phoneNumber;
+$fromNumber = $incoming_data->body->to[0]->phoneNumber;
 
 //echo_spaces("SMS Subject", $incoming_sms,1);
 //echo_spaces("To Number", $toNumber,1);
 //echo_spaces("From Number", $fromNumber,1);
 
 if (preg_match('/^(TODAY)$/i', $incoming_sms)) {
-//TODO change this line to react to STOP when LIVE
+//TODO change the line above to react to STOP when LIVE
     //if (preg_match('/^(STOP)|(END)|(CANCEL)|(UNSUBSCRIBE)|(QUIT)$/i', $incoming_sms)) {
-    send_stop_sms($fromNumber, $toNumber);
-    // remove numbers from the clients table.
-    //TODO update this process with sms_webhook id from the client DB record if possible.
-	kill_sms_webhook($fromNumber, $toNumber);
+    // send stop returns the db client id, then kill the SMS webhook and remove the webhook id from the DB record
+	kill_sms_webhook(send_stop_sms($fromNumber, $toNumber));
 }
 
 

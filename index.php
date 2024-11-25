@@ -74,9 +74,11 @@ if (isset($_POST['authorize'])) {
     if ($_GET['auth'] == 'N') {
 		$message = "The provided account is not Admin level. Please use another account or increase permissions on the provided account and then try again. <br/>";
 		show_form($message, "", true);
-	}
-	if ($_GET['auth'] == 'X') {
+	} elseif ($_GET['auth'] == 'X') {
 		$message = "The account login process was cancelled.";
+		show_form($message, "", true);
+	} else {
+		$message = "";
 		show_form($message, "", true);
 	}
 } else {
