@@ -1,5 +1,5 @@
 <?php
-/** Copyright (C) 2019-2024 Paladin Business Solutions */
+/** Copyright (C) 2019-2025 Paladin Business Solutions */
 
 /* ================= */
 /* Generic functions */

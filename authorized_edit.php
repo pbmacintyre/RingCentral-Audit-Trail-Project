@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2019-2024 Paladin Business Solutions
+ * Copyright (C) 2019-2025 Paladin Business Solutions
  */
 ob_start();
 session_start();
@@ -320,7 +320,7 @@ function check_form() {
 		// create admin webhook, there may already be an admin webhook so let the function test that
 		ringcentral_create_admin_webhook_subscription($accountId, $accessToken);
 
-		header("Location: authorization_complete.php");
+		header("Location: authorized_edit.php?cid=$client_id&token=$_SESSION[form_token]");
 
 	}
 }
@@ -333,7 +333,7 @@ if (isset($_SESSION['form_token']) && $_GET['token'] == $_SESSION['form_token'])
 	if (isset($_POST['save'])) {
 		check_form();
 	} else {
-		$message = "Your account has already been authorized. <br/> Please make any changes to the settings that we currently have for you.";
+		$message = "Your account has been authorized. <br/> Please make any changes to the settings that we currently have for you.";
 		show_form($message);
 	}
 	if (isset($_POST['logout'])) {

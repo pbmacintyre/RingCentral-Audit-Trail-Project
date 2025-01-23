@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2019-2024 Paladin Business Solutions
+ * Copyright (C) 2019-2025 Paladin Business Solutions
  */
 ob_start();
 session_start();
@@ -289,7 +289,7 @@ function check_form() {
 		);
 		db_record_update($table, $fields_data, $where_info);
 
-		header("Location: authorization_complete.php");
+		header("Location: authorized_edit.php?cid=$new_client_id&token=$_SESSION[form_token]");
 	}
 }
 

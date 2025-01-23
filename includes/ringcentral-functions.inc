@@ -1,5 +1,5 @@
 <?php
-/** Copyright (C) 2019-2024 Paladin Business Solutions */
+/** Copyright (C) 2019-2025 Paladin Business Solutions */
 
 /* ================= */
 /* Generic functions */
@@ -19,7 +19,7 @@ function app_name() {
 }
 
 function app_version() {
-	echo_plain_text("Version 0.1", "grey", "small");
+	echo_plain_text("Version 0.2", "grey", "small");
 }
 
 /* =================== */
