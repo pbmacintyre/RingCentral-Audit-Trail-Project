@@ -33,7 +33,7 @@ file_put_contents("received_EVENT_payload.log", $incoming);
 
 if (empty($incoming)) {
     http_response_code(200);
-    echo json_encode(array('responseType' => 'error', 'responseDescription' => 'No data provided Check SMS payload.'));
+    echo json_encode(array('responseType' => 'error', 'responseDescription' => 'No data provided Check incoming payload.'));
     exit();
 }
 

@@ -48,26 +48,49 @@ function get_audit_data($accessToken, $timeStamp) {
 
 	$data = json_decode($response, true);
 
-	//echo_spaces("Audit data object", $data);
+//	echo_spaces("Audit data object", $data);
 	$audit_data = array();
 
-	foreach ($data['records'] as $key => $value)
+	foreach ($data['records'] as $key => $value) {
 		// build an array of events that are applicable to sending to Admins
-		$audit_data[$key] = [
-			"eventType" => $value['eventType'],
-			"eventTime" => $value['eventTime'],
-			// "actionId" => $value['actionId'],
-			"Element Affected" => $value['details']['parameters'][0]['value'],
-			"old value" => $value['details']['parameters'][1]['value'],
-			"new value" => $value['details']['parameters'][2]['value'],
-			"initiator name" => $value['initiator']['name'],
-			"initiator extensionId" => $value['initiator']['extensionId'],
-			"initiator extensionNumber" => $value['initiator']['extensionNumber'],
-			"target name" => $value['target']['name'],
-			"target SW account Id" => $value['target']['objectId'],
-			"target extensionNumber" => $value['target']['extensionNumber'],
-			// "actionId" => $data['records']['accountID'],
-		];
+
+		switch ($value['details']['parameters'][0]['value']) {
+			case "Department":
+				$old_value = $value['details']['parameters'][1]['value'];
+				$new_value = $value['details']['parameters'][2]['value'];
+				break;
+			case "Email":
+			case "ContactPhone":
+			case "LastName":
+			case "FirstName":
+			case "JobTitle":
+			case "MobilePhone":
+				$old_value = $value['details']['parameters'][2]['value'];
+				$new_value = $value['details']['parameters'][3]['value'];
+				break;
+
+			default:
+				$old_value = "";
+				$new_value = "";
+		}
+		if ($new_value !== "") {
+			$audit_data[$key] = [
+				"eventType" => $value['eventType'],
+				"eventTime" => $value['eventTime'],
+				// "actionId" => $value['actionId'],
+				"Element Affected" => $value['details']['parameters'][0]['value'],
+				"old value" => $old_value,
+				"new value" => $new_value,
+				"initiator name" => $value['initiator']['name'],
+				"initiator extensionId" => $value['initiator']['extensionId'],
+				"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+				"target name" => $value['target']['name'],
+				"target SW account Id" => $value['target']['objectId'],
+				"target extensionNumber" => $value['target']['extensionNumber'],
+				// "actionId" => $data['records']['accountID'],
+			];
+		}
+	}
 	return $audit_data;
 }
 
