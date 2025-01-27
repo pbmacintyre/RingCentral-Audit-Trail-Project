@@ -68,7 +68,6 @@ function get_audit_data($accessToken, $timeStamp) {
 				$old_value = $value['details']['parameters'][2]['value'];
 				$new_value = $value['details']['parameters'][3]['value'];
 				break;
-
 			default:
 				$old_value = "";
 				$new_value = "";
