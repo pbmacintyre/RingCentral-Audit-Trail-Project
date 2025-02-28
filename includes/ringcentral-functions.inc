@@ -91,7 +91,7 @@ function ringcentral_build_help($field) {
 	return "<img src='$image_source' title='" . $help_text . "' />";
 }
 
-function ringcentral_create_admin_webhook_subscription($accountId, $accessToken) {
+function ringcentral_create_admin_webhook_subscription($accountId, $extensionId, $accessToken) {
 	// check to see if the account passed in already has an admin webhook
 
 	// see if there are any subscriptions for this access token
@@ -144,9 +144,11 @@ function ringcentral_create_admin_webhook_subscription($accountId, $accessToken)
 			"eventFilters" => [
 				// listening for some admin edits
 				"/restapi/v1.0/account/$accountId/directory/entries",
-				// TODO: need to get full lis of events to listen for from here:
+				"/restapi/v1.0/account/$accountId/extension/$extensionId",
+				// TODO: need to get full list of events to listen for from here:
 				// https://developers.ringcentral.com/guide/notifications/event-filters
-				// "/restapi/v1.0/account/~/extension/~/message-store",
+				// https://developers.ringcentral.com/api-reference/events-and-notifications
+				// syntax template: "/restapi/v1.0/account/~/extension/~/message-store",
 			],
 			"deliveryMode" => [
 				"transportType" => "WebHook",

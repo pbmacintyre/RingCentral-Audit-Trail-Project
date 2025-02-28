@@ -1,7 +1,11 @@
 <?php
-
+/** Copyright (C) 2019-2025 Paladin Business Solutions */
 ob_start();
 session_start();
+
+if ($_GET['error'] == "invalid_request") {
+	header("Location: index.php?auth=X&desc=$_GET[error_description]");
+}
 
 require_once('includes/ringcentral-db-functions.inc');
 require_once('includes/ringcentral-php-functions.inc');
@@ -45,7 +49,7 @@ if (isset($_GET['code'])) {
 
 	$data = json_decode($response, true);
 
-	//echo_spaces("authorization data", $data);
+	// echo_spaces("authorization data", $data);
 
 	$accessToken = $data['access_token'];
 	$refreshToken = $data['refresh_token'];
@@ -75,9 +79,6 @@ if (isset($_GET['code'])) {
 	// see if this is an admin level account
 	$isAdmin = is_admin($accessToken, $accountId, $extensionId);
 
-//	echo_spaces("admin ?", $isAdmin);
-//	exit();
-
 	// check if this account has already been saved to the DB
 	$table = "clients";
 	$columns_data = array("client_id");
@@ -102,7 +103,7 @@ if (isset($_GET['code'])) {
 		header("Location: authorized_new.php?token=$_SESSION[form_token]");
 	}
 } elseif ($_GET['error'] == "access_denied") {
-	header("Location: index.php?auth=X");
+	header("Location: index.php?auth=X&desc=$_GET[error]");
 }
 
 ob_end_flush();

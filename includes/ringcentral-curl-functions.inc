@@ -5,15 +5,15 @@
 /* Generic functions */
 /* ================= */
 
-function get_audit_data($accessToken, $timeStamp) {
-	// set date range for 5 minutes on either side of the event timestamp
-	$dateTime = new DateTime($timeStamp, new DateTimeZone('AST'));
-	$startDateTime = $dateTime->modify('-5 minutes')->format('Y-m-d\TH:i:s.v\Z');
-//    $startDateTime = '2024-08-01T00:00:00.000Z';
+function get_audit_data($accessToken) {
 
-	$dateTime = new DateTime($timeStamp, new DateTimeZone('AST'));
-	$endDateTime = $dateTime->modify('+5 minutes')->format('Y-m-d\TH:i:s.v\Z');
-//    $endDateTime = '2024-08-22T00:00:00.000Z';
+	$dateTime = new DateTime('now');
+//	$dateTime = new DateTime($timeStamp, new DateTimeZone('AST'));
+
+	$endDateTime = $dateTime->format('Y-m-d\TH:i:s.v\Z');
+	// set start time to 10 minutes before "now"
+	$startDateTime = $dateTime->modify('-10 minutes')->format('Y-m-d\TH:i:s.v\Z');
+//	$startDateTime = $dateTime->modify('-2 days')->format('Y-m-d\TH:i:s.v\Z');
 
 //    echo_spaces("start date", $startDateTime);
 //    echo_spaces("end date", $endDateTime, 1);
@@ -27,9 +27,8 @@ function get_audit_data($accessToken, $timeStamp) {
 		'perPage' => 100,
 		'includeAdmins' => True,
 		'includeHidden' => True,
-		// only bring back these types of events from the audit trail
-		// there could be a list of different actionIds to bring back
-		"actionIds" => ['CHANGE_USER_INFO:USER',],
+		// bring back all audit trail events
+		//"actionIds" => ['CHANGE_USER_INFO:USER',],
 	];
 
 	$headers = [
@@ -54,40 +53,198 @@ function get_audit_data($accessToken, $timeStamp) {
 	foreach ($data['records'] as $key => $value) {
 		// build an array of events that are applicable to sending to Admins
 
-		switch ($value['details']['parameters'][0]['value']) {
-			case "Department":
-				$old_value = $value['details']['parameters'][1]['value'];
-				$new_value = $value['details']['parameters'][2]['value'];
+		switch ($value['actionId']) {
+			// MFA turned off for Company
+			case "UNFORCE_MFA_ACCOUNT":
+				$audit_data[$key] = [
+					"Event Description" => "MFA turned off",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+//					"target SW account Id" => $value['target']['objectId'],
+//					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
 				break;
-			case "Email":
-			case "ContactPhone":
-			case "LastName":
-			case "FirstName":
-			case "JobTitle":
-			case "MobilePhone":
-				$old_value = $value['details']['parameters'][2]['value'];
-				$new_value = $value['details']['parameters'][3]['value'];
+			// MFA turned on for Company
+			case "ENFORCE_MFA_ACCOUNT":
+				$audit_data[$key] = [
+					"Event Description" => "MFA turned on",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+//					"target SW account Id" => $value['target']['objectId'],
+//					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
 				break;
-			default:
-				$old_value = "";
-				$new_value = "";
-		}
-		if ($new_value !== "") {
-			$audit_data[$key] = [
-				"eventType" => $value['eventType'],
-				"eventTime" => $value['eventTime'],
-				// "actionId" => $value['actionId'],
-				"Element Affected" => $value['details']['parameters'][0]['value'],
-				"old value" => $old_value,
-				"new value" => $new_value,
-				"initiator name" => $value['initiator']['name'],
-				"initiator extensionId" => $value['initiator']['extensionId'],
-				"initiator extensionNumber" => $value['initiator']['extensionNumber'],
-				"target name" => $value['target']['name'],
-				"target SW account Id" => $value['target']['objectId'],
-				"target extensionNumber" => $value['target']['extensionNumber'],
-				// "actionId" => $data['records']['accountID'],
-			];
+			//=========== 2FA turned off for User
+			case "UNFORCE_MFA_EXTENSION":
+				$audit_data[$key] = [
+					"Event Description" => "2FA turned off",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+					"target SW account Id" => $value['target']['objectId'],
+					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// 2FA turned on for User
+			case "ENFORCE_MFA_EXTENSION":
+				$audit_data[$key] = [
+					"Event Description" => "2FA turned on",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+					"target SW account Id" => $value['target']['objectId'],
+					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// Forward calls turned On for user
+			case "ENABLE_FAC_RULE:User":
+				$audit_data[$key] = [
+					"Event Description" => "Enabled FAC rule",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+					"target SW account Id" => $value['target']['objectId'],
+					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// Forward calls turned off for user
+			case "DISABLE_FAC_RULE:User":
+				$audit_data[$key] = [
+					"Event Description" => "Disabled FAC rule",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+//					"old value" => $value['details']['parameters'][0]['value'],
+//					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+					"target SW account Id" => $value['target']['objectId'],
+					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			case "CHANGE_FAC_MASTER_MENU_ACTION":
+				$audit_data[$key] = [
+					"Event Description" => "Forward All Company Calls changed",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+					"old value" => $value['details']['parameters'][0]['value'],
+					"new value" => $value['details']['parameters'][1]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+//					"target name" => $value['target']['name'],
+//					"target SW account Id" => $value['target']['objectId'],
+//					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// Glip -  External guest communications toggle changed
+			case "CHANGE_GLIP_ALLOW_ADDING_USERS":
+				$audit_data[$key] = [
+					"Event Description" => "External guest communications toggle changed",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+					"old value" => $value['details']['parameters'][1]['value'],
+					"new value" => $value['details']['parameters'][2]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+//					"target name" => $value['target']['name'],
+//					"target SW account Id" => $value['target']['objectId'],
+//					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// Glip -  External guest communications toggle changed
+			case "CHANGE_GLIP_FILE_SHARING":
+				$audit_data[$key] = [
+					"Event Description" => "GLIP File Sharing changed",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+					"old value" => $value['details']['parameters'][1]['value'],
+					"new value" => $value['details']['parameters'][2]['value'],
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+//					"target name" => $value['target']['name'],
+//					"target SW account Id" => $value['target']['objectId'],
+//					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+			// User account information changed
+			case "CHANGE_USER_INFO:USER":
+				switch ($value['details']['parameters'][0]['value']) {
+					case "Department":
+					case "Record User Name":
+						$old_value = $value['details']['parameters'][1]['value'];
+						$new_value = $value['details']['parameters'][2]['value'];
+						break;
+					case "Email":
+					case "ContactPhone":
+					case "LastName":
+					case "FirstName":
+					case "JobTitle":
+					case "MobilePhone":
+						$old_value = $value['details']['parameters'][2]['value'];
+						$new_value = $value['details']['parameters'][3]['value'];
+						break;
+					default:
+						$old_value = "";
+						$new_value = "";
+				}
+				// build audit array
+				$audit_data[$key] = [
+					"Event Description" => "User account information changed",
+					"eventTime" => $value['eventTime'],
+					// "actionId" => $value['actionId'],
+					"Element Affected" => $value['details']['parameters'][0]['value'],
+					"old value" => $old_value,
+					"new value" => $new_value,
+					"initiator name" => $value['initiator']['name'],
+					"initiator extensionId" => $value['initiator']['extensionId'],
+					"initiator extensionNumber" => $value['initiator']['extensionNumber'],
+					"target name" => $value['target']['name'],
+					"target SW account Id" => $value['target']['objectId'],
+					"target extensionNumber" => $value['target']['extensionNumber'],
+				];
+				break;
+				default:
+					// do nothing
 		}
 	}
 	return $audit_data;
@@ -194,20 +351,30 @@ function send_admin_sms($destination_array, $audit_data) {
 			"Content-Type: application/json"
 		];
 		foreach ($audit_data as $value2) {
-			$settingChanged = $value2['Element Affected'];
+			$settingChanged = $value2['Event Description'];
 
 			$dateTime = new DateTime($value2['eventTime']);
 			$dateTime->setTimezone(new DateTimeZone("America/Halifax")); // AST is UTC-4
+
 			$eventTime = $dateTime->format('M j, Y => g:i a');
-
-			$oldValue = $value2['old value'];
-			$newValue = $value2['new value'];
 			$initiator = $value2['initiator name'];
-			$target_name = $value2['target name'];
-			$target_SW_account_id = $value2['target SW account Id'];
-			$extension_num = $value2['target extensionNumber'];
 
-			$message = "$eventTime: The setting '$settingChanged' for $target_name (Extension #: $extension_num, SW Account #: $target_SW_account_id) was changed from '$oldValue' to '$newValue' by: $initiator";
+			$message = "$eventTime: $settingChanged by: $initiator.";
+
+			$message .= ($value2['Element Affected']) ? " Affected Element: [" . $value2['Element Affected'] . "]" : "";
+			$message .= ($value2['old value']) ? " old value / current action: [" . $value2['old value'] . "]" : "";
+			$message .= ($value2['new value']) ? " new value: [" . $value2['new value'] . "]" : "";
+
+			if ($value2['target name']) {
+				$target_name = $value2['target name'];
+				$message .= " The target of the change was: $target_name";
+			}
+
+			if ($value2['target SW account Id']) {
+				$target_SW_account_id = $value2['target SW account Id'] ;
+				$target_extension_num = $value2['target extensionNumber'];
+				$message .= " at: $target_SW_account_id (ext: $target_extension_num)";
+			}
 
 			$message .= " To opt out at any time, simply reply with STOP.";
 
@@ -238,20 +405,30 @@ function send_team_message($destination_array, $audit_data) {
 		$endpoint = "https://platform.ringcentral.com/team-messaging/v1/chats/$chatId/posts";
 
 		foreach ($audit_data as $value2) {
-			$settingChanged = $value2['Element Affected'];
+			$settingChanged = $value2['Event Description'];
 
 			$dateTime = new DateTime($value2['eventTime']);
 			$dateTime->setTimezone(new DateTimeZone("America/Halifax")); // AST is UTC-4
+
 			$eventTime = $dateTime->format('M j, Y => g:i a');
-
-			$oldValue = $value2['old value'];
-			$newValue = $value2['new value'];
 			$initiator = $value2['initiator name'];
-			$target_name = $value2['target name'];
-			$target_SW_account_id = $value2['target SW account Id'];
-			$extension_num = $value2['target extensionNumber'];
 
-			$message = "$eventTime: The setting '$settingChanged' for $target_name (Extension #: $extension_num, SW Account #: $target_SW_account_id) was changed from '$oldValue' to '$newValue' by: $initiator";
+			$message = "$eventTime: **$settingChanged** by: __ $initiator __.";
+
+			$message .= ($value2['Element Affected']) ? " Affected Element: [" . $value2['Element Affected'] . "]" : "";
+			$message .= ($value2['old value']) ? " **old value / current action**: [" . $value2['old value'] . "]" : "";
+			$message .= ($value2['new value']) ? " **new value**: [" . $value2['new value'] . "]" : "";
+
+			if ($value2['target name']) {
+				$target_name = $value2['target name'];
+				$message .= " The target of the change was: $target_name";
+			}
+
+			if ($value2['target SW account Id']) {
+				$target_SW_account_id = $value2['target SW account Id'] ;
+				$target_extension_num = $value2['target extensionNumber'];
+				$message .= " at: $target_SW_account_id (ext: $target_extension_num)";
+			}
 
 			$data = [
 				'text' => $message,
@@ -275,7 +452,14 @@ function send_team_message($destination_array, $audit_data) {
 
 }
 
-function refresh_tokens($refreshToken, $client_id, $client_secret) {
+function refresh_tokens($client_id, $refreshToken) {
+	require(__DIR__ . '/vendor/autoload.php');
+
+	Dotenv\Dotenv::createImmutable(__DIR__ )->load();
+
+	$rc_client_id = $_ENV['RC_APP_CLIENT_ID'];
+	$rc_client_secret = $_ENV['RC_APP_CLIENT_SECRET'];
+
 	$endpoint = 'https://platform.ringcentral.com/restapi/oauth/token';
 
 	$refresh_params = [
@@ -284,7 +468,7 @@ function refresh_tokens($refreshToken, $client_id, $client_secret) {
 	];
 
 	$refresh_headers = [
-		'Authorization: Basic ' . base64_encode($client_id . ':' . $client_secret),
+		'Authorization: Basic ' . base64_encode($rc_client_id . ':' . $rc_client_secret),
 		'Content-Type: application/x-www-form-urlencoded'
 	];
 
@@ -297,7 +481,7 @@ function refresh_tokens($refreshToken, $client_id, $client_secret) {
 
 	$new_response = curl_exec($new_ch);
 	// Display response
-    // echo_spaces("Response", $new_response);
+//     echo_spaces("Response", $new_response);
 
 	curl_close($new_ch);
 
@@ -306,6 +490,14 @@ function refresh_tokens($refreshToken, $client_id, $client_secret) {
 	$tokens = array();
 	$tokens['accessToken'] = $refresh_data['access_token'];
 	$tokens['refreshToken'] = $refresh_data['refresh_token'];
+
+	$table = "clients";
+	$where_info = array ("client_id", $client_id);
+	$fields_data = $fields_data = array(
+		"access" => $tokens['accessToken'],
+		"refresh" => $tokens['refreshToken'],
+	);
+	db_record_update($table, $fields_data, $where_info);
 
 	return $tokens;
 }
@@ -374,6 +566,9 @@ function is_admin($accessToken, $accountId, $extensionId) {
 		curl_close($ch);
 		$data = json_decode($resp, true);
 
+		// echo_spaces("data array", $data);
+		// exit;
+
 		if ($data['permissions']['admin']['enabled']) {
 			$admin = true;
 		}
@@ -390,6 +585,13 @@ function is_admin($accessToken, $accountId, $extensionId) {
 /* Get list of Team Messaging Group Chats (Teams) */
 /* ============================================= */
 function list_tm_teams($accessToken) {
+
+//	require(__DIR__ . '/vendor/autoload.php');
+//
+//	Dotenv\Dotenv::createImmutable(__DIR__ )->load();
+//
+//	$rc_client_id = $_ENV['RC_APP_CLIENT_ID'];
+//	$rc_client_secret = $_ENV['RC_APP_CLIENT_SECRET'];
 
 	$endpoint = "https://platform.ringcentral.com/team-messaging/v1/chats";
 

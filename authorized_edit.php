@@ -53,15 +53,21 @@ page_header();
 
 <?php
 function show_form($message, $label = "", $print_again = false, $color = "#008EC2") {
-//	$accessToken = $_SESSION['access_token'];
-//	$accountId = $_SESSION['account_id'];
-//	$extensionId = $_SESSION['extension_id'];
+
 	$client_id = htmlspecialchars(strip_tags($_GET['cid']));
+
+	$table = "clients";
+	$columns_data = array ("refresh" );
+	$where_info = array("client_id", $client_id);
+	$db_result = db_record_select($table, $columns_data, $where_info);
+
+	refresh_tokens($client_id, $db_result[0]['refresh']);
 
 	$table = "clients";
 	$columns_data = "*";
 	$where_info = array("client_id", $client_id);
 	$db_result = db_record_select($table, $columns_data, $where_info);
+
 	?>
     <form action="" method="post">
         <table class="CustomTable">
@@ -318,7 +324,7 @@ function check_form() {
 		db_record_update($table, $fields_data, $where_info);
 
 		// create admin webhook, there may already be an admin webhook so let the function test that
-		ringcentral_create_admin_webhook_subscription($accountId, $accessToken);
+		ringcentral_create_admin_webhook_subscription($accountId, $extensionId, $accessToken);
 
 		header("Location: authorized_edit.php?cid=$client_id&token=$_SESSION[form_token]");
 
@@ -333,7 +339,7 @@ if (isset($_SESSION['form_token']) && $_GET['token'] == $_SESSION['form_token'])
 	if (isset($_POST['save'])) {
 		check_form();
 	} else {
-		$message = "Your account has been authorized. <br/> Please make any changes to the settings that we currently have for you.";
+		$message = "Your account is authorized. Here are your current settings. <br/> Please make any desired changes and save them.";
 		show_form($message);
 	}
 	if (isset($_POST['logout'])) {

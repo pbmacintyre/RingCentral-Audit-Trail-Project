@@ -1,9 +1,1 @@
-{"uuid":"994848555693304863","event":"/restapi/v1.0/account/3058829020/directory/entries",
-"timestamp":"2024-11-23T16:40:11.314Z","subscriptionId":"df108e0c-fb3f-475f-a7f3-311fb944bda4",
-"ownerId":"2412476021","body":{"contacts":[{"eventType":"Update",
-"oldEtag":"dfa30612d3c644230b341a4dc1efc5873e523a7800026606b513210eb4b9712d",
-"newEtag":"f71823b7734cb650e6751ddaf1a1dbf0f985ffcb7ee6c0fe648c00bb716c3ea5",
-"id":"2421611021","type":"User","status":"Enabled","firstName":"Peter","lastName":"MacIntyre 2",
-"department":"Chemistry","email":"info@paladin-bs.com","extensionNumber":"12004",
-"account":{"id":"3058829020"},"phoneNumbers":[{"phoneNumber":"+19023320720","type":"VoiceFax",
-"formattedPhoneNumber":"+1 (902) 3320720","usageType":"DirectNumber","primary":true}]}]}}
+{"uuid":"544229679214823240","event":"/restapi/v1.0/account/3058829020/directory/entries","timestamp":"2025-01-27T18:36:34.127Z","subscriptionId":"02e55e37-8412-4691-9409-fe4ab7ea910f","ownerId":"2412476021","body":{"contacts":[{"eventType":"Update","oldEtag":"c72dd3a087f3baacec804f8cf5bef54b933deb44341e9b32ac6d75a437ff9772","newEtag":"32c9a018398d0600949044f4944906dd8cff1b54eec9e3452eed0cad02763c4c","id":"2421611021","type":"User","status":"Enabled","firstName":"Peter","lastName":"MacIntyre 22","jobTitle":"Developer","department":"Biology","email":"info@paladin-bs.com","extensionNumber":"12004","account":{"id":"3058829020"},"phoneNumbers":[{"phoneNumber":"+19023320720","type":"VoiceFax","formattedPhoneNumber":"+1 (902) 3320720","usageType":"DirectNumber","primary":true}]}]}}
