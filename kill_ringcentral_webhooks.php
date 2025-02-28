@@ -78,7 +78,7 @@ if (!$db_result) {
             echo_spaces("Webhook URI", $subscription['deliveryMode']['address']);
             echo_spaces("Webhook transport type", $subscription['deliveryMode']['transportType'], 2);
 
-            if ($subscription_id == "f6af077f-5d4d-420a-ba44-1b19dff63e23") {
+//            if ($subscription_id == "f6af077f-5d4d-420a-ba44-1b19dff63e23") {
                 $endpoint_del_url = "https://platform.ringcentral.com/restapi/v1.0/subscription/$subscription_id";
                 $subscription_del_ch = curl_init();
 
@@ -96,7 +96,7 @@ if (!$db_result) {
                 $subscription_del_response = curl_exec($subscription_del_ch);
                 curl_close($subscription_del_ch);
                 echo_spaces("Subscription ID Deleted", $subscription_id, 2);
-             } // comment here for deleting all
+//             } // comment here for deleting all
         }
 
     }
