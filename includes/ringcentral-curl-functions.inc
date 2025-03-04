@@ -57,7 +57,7 @@ function get_audit_data($accessToken) {
 			// MFA turned off for Company
 			case "UNFORCE_MFA_ACCOUNT":
 				$audit_data[$key] = [
-					"Event Description" => "MFA turned off",
+					"Event Description" => "MFA turned off for Company",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
@@ -74,7 +74,7 @@ function get_audit_data($accessToken) {
 			// MFA turned on for Company
 			case "ENFORCE_MFA_ACCOUNT":
 				$audit_data[$key] = [
-					"Event Description" => "MFA turned on",
+					"Event Description" => "MFA turned on for Company",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
@@ -91,7 +91,7 @@ function get_audit_data($accessToken) {
 			//=========== 2FA turned off for User
 			case "UNFORCE_MFA_EXTENSION":
 				$audit_data[$key] = [
-					"Event Description" => "2FA turned off",
+					"Event Description" => "2FA turned off per user",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
@@ -108,7 +108,7 @@ function get_audit_data($accessToken) {
 			// 2FA turned on for User
 			case "ENFORCE_MFA_EXTENSION":
 				$audit_data[$key] = [
-					"Event Description" => "2FA turned on",
+					"Event Description" => "2FA turned on per user",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
@@ -125,7 +125,7 @@ function get_audit_data($accessToken) {
 			// Forward calls turned On for user
 			case "ENABLE_FAC_RULE:User":
 				$audit_data[$key] = [
-					"Event Description" => "Enabled FAC rule",
+					"Event Description" => "Enabled Forward All Calls per user rule",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
@@ -142,7 +142,7 @@ function get_audit_data($accessToken) {
 			// Forward calls turned off for user
 			case "DISABLE_FAC_RULE:User":
 				$audit_data[$key] = [
-					"Event Description" => "Disabled FAC rule",
+					"Event Description" => "Disabled Forward All Calls per user rule",
 					"eventTime" => $value['eventTime'],
 					// "actionId" => $value['actionId'],
 					"Element Affected" => $value['details']['parameters'][0]['value'],
